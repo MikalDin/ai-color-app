@@ -321,49 +321,34 @@ export default function App() {
     setCanRedo(redo);
   };
 
-  const handleAIGenerate = async (prompt) => {
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      alert('Please add ANTHROPIC_API_KEY to .env file');
-      return;
-    }
+const handleAIGenerate = async (prompt) => {
+  setIsGenerating(true);
+  try {
+    const response = await fetch('http://localhost:3001/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt })
+    });
 
-    setIsGenerating(true);
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          messages: [{
-            role: 'user',
-            content: `Create a simple SVG outline of "${prompt}" for coloring. Size: 1600x1200, black strokes only, no fills, stroke-width: 30px. ONLY SVG code, no explanation.`
-          }]
-        })
-      });
-
-      if (!response.ok) throw new Error('API error');
-      const data = await response.json();
-      let svgText = data.content[0].text.replace(/```svg|```/g, '').trim();
-      
-      if (!svgText.startsWith('<svg')) {
-        const idx = svgText.indexOf('<svg');
-        if (idx !== -1) svgText = svgText.substring(idx);
-      }
-      
-      const blob = new Blob([svgText], { type: 'image/svg+xml' });
-      setAiOutline(URL.createObjectURL(blob));
-    } catch (error) {
-      alert('AI generation failed: ' + error.message);
-    } finally {
-      setIsGenerating(false);
+    if (!response.ok) throw new Error('API error');
+    const data = await response.json();
+    let svgText = data.content[0].text.replace(/```svg|```/g, '').trim();
+    
+    if (!svgText.startsWith('<svg')) {
+      const idx = svgText.indexOf('<svg');
+      if (idx !== -1) svgText = svgText.substring(idx);
     }
-  };
+    
+    const blob = new Blob([svgText], { type: 'image/svg+xml' });
+    setAiOutline(URL.createObjectURL(blob));
+  } catch (error) {
+    alert('AI generation failed: ' + error.message);
+  } finally {
+    setIsGenerating(false);
+  }
+};
 
   return (
     <div style={{
