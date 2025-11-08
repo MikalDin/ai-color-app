@@ -1,0 +1,4 @@
+//  to get this app up and runnnig need to run two terminals.  
+// run both from the root directory of ai-color-app  
+// node server.js
+// npm start or npm run dev or npm start (one or all of these should work)
